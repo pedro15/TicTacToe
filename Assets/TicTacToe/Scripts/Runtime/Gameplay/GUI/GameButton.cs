@@ -10,6 +10,10 @@ namespace TicTacToe.Gameplay.GUI
     {
         [SerializeField]
         private Button m_button = default;
+        [SerializeField]
+        private Image m_image = default;
+
+        public Image Graphic => m_image;
 
         public Vector2Int Movecoord;
 

@@ -1,4 +1,6 @@
-﻿namespace TicTacToe.Core
+﻿using Debug = UnityEngine.Debug;
+
+namespace TicTacToe.Core
 {
     public enum PlayerSide
     {
@@ -9,7 +11,7 @@
 
     public class GameGrid
     {
-        private int[,] cells;
+        public int[,] cells { get; private set; }
         public GameGrid()
         {
             cells = new int[3, 3];
@@ -73,8 +75,8 @@
             bool result = cells[x, y] == player;
             for (int i = 0; i < cells.GetLength(0); i++)
             {
-                x = (_x == cells.GetLength(0) - 1) ? x - i : x + i;
-                y = (_y == cells.GetLength(1) - 1) ? y - i : y + i;
+                x = (_x == cells.GetLength(0) - 1) ? (x - 1) : (x + 1);
+                y = (_y == cells.GetLength(1) - 1) ? (y - 1) : (y + 1);
 
                 if (IsValidCoord(x, y))
                     result &= cells[x, y] == player;
@@ -86,8 +88,6 @@
 
         public bool IsWinnerVertical(int player , int _x , int _y)
         {
-            if (IsOnCorner(_x, _y)) return false;
-
             int y = _y;
 
             int count = 0;
@@ -99,11 +99,8 @@
                         count++;
                     else
                         return false;
-
                 }
-                else break;
-
-                y = (_y == cells.GetLength(1) - 1) ? y - i : y + i;
+                y = (_y == (cells.GetLength(1) - 1)) ? (y - 1) : (y + 1);
             }
 
             return count == cells.GetLength(1);
@@ -111,24 +108,24 @@
 
         public bool IsWinnerHorizontal (int player , int _x , int _y)
         {
-            if (IsOnCorner(_x, _y)) return false;
-
+            
             int x = _x;
 
             int count = 0;
+
             for (int i = 0; i < cells.GetLength(0); i++)
             {
                 if (IsValidCoord(x, _y))
                 {
                     if (cells[x, _y] == player)
                         count++;
-                    else return false;
+                    else 
+                        return false;
                 }
-                else break;
-                x = (_x == cells.GetLength(0) - 1) ? x - i : x + i;
+                x = (_x == (cells.GetLength(0) - 1)) ? (x - 1) : (x + 1);
             }
 
-            return count == cells.GetLength(1);
+            return count == cells.GetLength(0);
         }
 
         public bool IsOnCorner(int x , int y )

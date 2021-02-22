@@ -42,11 +42,11 @@ namespace TicTacToe.Tests
         }
 
         [Test]
-        public void WinnerVertical()
+        public void WinnerHorizontal_Loss()
         {
-            string grid_str = "0-1-0" +
-                              "0-1-0" +
-                              "0-1-0";
+            string grid_str = "0-0-0" +
+                              "0-1-1" +
+                              "0-0-0";
 
             GameGrid grid = new GameGrid(grid_str);
 
@@ -54,7 +54,23 @@ namespace TicTacToe.Tests
 
             int player = (int)PlayerSide.Player_X;
 
-            Assert.IsTrue(grid.IsWinnerVertical(player, 1, 0) && grid.IsWinnerVertical(player , 1,2));
+            Assert.IsTrue(!grid.IsWinnerHorizontal(player, 2, 1));
+        }
+
+        [Test]
+        public void WinnerVertical()
+        {
+            string grid_str = "1-1-0" +
+                              "1-2-0" +
+                              "1-1-0";
+
+            GameGrid grid = new GameGrid(grid_str);
+
+            Debug.Log(grid.Serialize());
+
+            int player = (int)PlayerSide.Player_X;
+
+            Assert.IsTrue(grid.IsWinnerVertical(player, 0, 0) && grid.IsWinnerVertical(player , 0,2));
         }
 
     }

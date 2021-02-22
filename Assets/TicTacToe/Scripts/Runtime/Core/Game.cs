@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using MEC;
 using TicTacToe.Gameplay;
-using TicTacToe.Core.Players;
+using TicTacToe.Gameplay.Players;
 
 namespace TicTacToe.Core
 {
     public class Game
     {
+        private const string K_WaitPlayer = "WAIT_FOR_PLAYER_INPUT";
+
+        public delegate void d_OnMovementMade(GameMove move);
+        public event d_OnMovementMade OnMovementMade;
+
         public delegate void d_OnTurnChanged(PlayerSide side);
         public event d_OnTurnChanged OnTurnChanged;
 
@@ -28,6 +33,8 @@ namespace TicTacToe.Core
             Player_X = new HumanPlayer(PlayerSide.Player_X);
 
             selectedPlayer = Player_O;
+
+            Timing.RunCoroutine(I_WaitForPlayer(), K_WaitPlayer);
         }
 
         private IEnumerator<float> I_WaitForPlayer()
@@ -37,6 +44,10 @@ namespace TicTacToe.Core
                 if(selectedPlayer.Move(out GameMove movement))
                 {
                     grid.PlacePlayerOnSquare(movement.x , movement.y , movement.side);
+
+                    if (OnMovementMade != null) OnMovementMade.Invoke(movement);
+
+                    yield return Timing.WaitForSeconds(0.2f);
 
                     // Check for win
 
@@ -59,12 +70,14 @@ namespace TicTacToe.Core
                         currentTurn = PlayerSide.Player_O;
                     }
 
-                    yield return Timing.WaitForSeconds(0.5f);
+                    yield return Timing.WaitForSeconds(1f);
 
                     if (OnTurnChanged != null) OnTurnChanged.Invoke(currentTurn);
                 }
                 yield return Timing.WaitForOneFrame;
             }
+            Timing.KillCoroutines(K_WaitPlayer);
+            yield break;
         }
 
     }

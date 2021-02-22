@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TicTacToe.Gameplay;
+using TicTacToe.Core;
 
-namespace TicTacToe.Core.Players
+namespace TicTacToe.Gameplay.Players
 {
     public class HumanPlayer : GamePlayer
     {
@@ -17,6 +17,7 @@ namespace TicTacToe.Core.Players
             if (GameInput.Moved())
             {
                 playedMove = new GameMove(side, GameInput.MoveCoord.x, GameInput.MoveCoord.y);
+                GameInput.ResetInput();
                 return true;
             }
             playedMove = new GameMove();
