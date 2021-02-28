@@ -1,4 +1,5 @@
 ﻿using Debug = UnityEngine.Debug;
+using System.Linq;
 
 namespace TicTacToe.Core
 {
@@ -48,6 +49,16 @@ namespace TicTacToe.Core
         }
 
         // ==================== [ PUBLIC API ] ==================== 
+
+        public int EmptySpacesCount()
+        {
+            int empty_count = 0;
+            for (int x = 0; x < cells.GetLength(0); x++)
+                for (int y = 0; y < cells.GetLength(1); y++)
+                    if (cells[x, y] == 0) empty_count++;
+
+            return empty_count;
+        }
 
 
         public bool IsPlayerWinner(PlayerSide side)

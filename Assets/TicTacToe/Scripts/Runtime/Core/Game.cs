@@ -14,8 +14,8 @@ namespace TicTacToe.Core
         public delegate void d_OnMovementMade(GameMove move);
         public event d_OnMovementMade OnMovementMade;
 
-        public delegate void d_OnTurnChanged(PlayerSide side);
-        public event d_OnTurnChanged OnTurnChanged;
+        public delegate void d_OnGameOver(PlayerSide winner);
+        public event d_OnGameOver OnGameOver;
 
         public PlayerSide currentTurn { get; private set; } = PlayerSide.Player_O;
 
@@ -41,19 +41,29 @@ namespace TicTacToe.Core
         {
             while(true)
             {
-                if(selectedPlayer.Move(out GameMove movement))
+                if (selectedPlayer.Move(out GameMove movement))
                 {
-                    grid.PlacePlayerOnSquare(movement.x , movement.y , movement.side);
+                    if (grid.cells[movement.x, movement.y] != 0) continue;
 
+                    grid.PlacePlayerOnSquare(movement.x, movement.y, movement.side);
                     if (OnMovementMade != null) OnMovementMade.Invoke(movement);
 
-                    yield return Timing.WaitForSeconds(0.2f);
 
                     // Check for win
 
                     if (grid.IsPlayerWinner(currentTurn))
                     {
                         Debug.Log("Game Over. Winner: " + currentTurn);
+                        if (OnGameOver != null) OnGameOver.Invoke(currentTurn);
+                        break;
+                    }
+
+                    // Check for draw
+
+                    if (grid.EmptySpacesCount() == 0)
+                    {
+                        Debug.Log("Is a draw");
+                        if (OnGameOver != null) OnGameOver.Invoke(PlayerSide.None);
                         break;
                     }
 
@@ -69,10 +79,6 @@ namespace TicTacToe.Core
                         selectedPlayer = Player_O;
                         currentTurn = PlayerSide.Player_O;
                     }
-
-                    yield return Timing.WaitForSeconds(1f);
-
-                    if (OnTurnChanged != null) OnTurnChanged.Invoke(currentTurn);
                 }
                 yield return Timing.WaitForOneFrame;
             }
