@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TicTacToe.Core;
 using TicTacToe.Gameplay.GUI;
+using TicTacToe.Gameplay.Players;
 
 namespace TicTacToe.Gameplay
 {
@@ -20,7 +21,7 @@ namespace TicTacToe.Gameplay
 
         private void Start()
         {
-            game = new Game();
+            game = new Game(new HumanPlayer(), new HumanPlayer());
             int[,] cells = game.grid.cells;
 
             for (int y = 0; y < cells.GetLength(1); y++)

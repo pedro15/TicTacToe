@@ -21,16 +21,16 @@ namespace TicTacToe.Core
 
         public GameGrid grid { get; private set; }
 
-        private HumanPlayer Player_O;
-        private HumanPlayer Player_X;
+        private GamePlayer Player_O;
+        private GamePlayer Player_X;
 
         private GamePlayer selectedPlayer;
-        
-        public Game()
+
+        public Game(GamePlayer _Player_O , GamePlayer _Player_X)
         {
             grid = new GameGrid();
-            Player_O = new HumanPlayer(PlayerSide.Player_O);
-            Player_X = new HumanPlayer(PlayerSide.Player_X);
+            Player_O = _Player_O;
+            Player_X = _Player_X;
 
             selectedPlayer = Player_O;
 
@@ -41,7 +41,7 @@ namespace TicTacToe.Core
         {
             while(true)
             {
-                if (selectedPlayer.Move(out GameMove movement))
+                if (selectedPlayer.Move(out GameMove movement , currentTurn))
                 {
                     if (grid.cells[movement.x, movement.y] != 0) continue;
 

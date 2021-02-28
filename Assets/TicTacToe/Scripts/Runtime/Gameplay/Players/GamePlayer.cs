@@ -7,12 +7,6 @@ namespace TicTacToe.Gameplay.Players
 {
     public abstract class GamePlayer
     {
-        public readonly PlayerSide side;
-        public abstract bool Move(out GameMove playedMove);
-        
-        public GamePlayer(PlayerSide _side)
-        {
-            side = _side;
-        }
+        public abstract bool Move(out GameMove playedMove , PlayerSide side); 
     }
 }

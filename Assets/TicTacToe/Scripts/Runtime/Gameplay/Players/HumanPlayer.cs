@@ -7,12 +7,7 @@ namespace TicTacToe.Gameplay.Players
 {
     public class HumanPlayer : GamePlayer
     {
-        public HumanPlayer(PlayerSide side) : base(side)
-        {
-            
-        }
-
-        public override bool Move(out GameMove playedMove)
+        public override bool Move(out GameMove playedMove , PlayerSide side)
         {
             if (GameInput.Moved())
             {
