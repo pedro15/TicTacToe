@@ -1,5 +1,6 @@
 ﻿using Debug = UnityEngine.Debug;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace TicTacToe.Core
 {
@@ -16,6 +17,12 @@ namespace TicTacToe.Core
         public GameGrid()
         {
             cells = new int[3, 3];
+        }
+
+        public GameGrid(int [,] data)
+        {
+            if (data.Length != 9) throw new System.ArgumentException("Invalid data");
+            cells = data;
         }
 
         public GameGrid(string gridstring)
@@ -36,6 +43,23 @@ namespace TicTacToe.Core
                 {
                     cells[x, y] = (int)char.GetNumericValue(current);
                     x++;
+                }else 
+                {
+                    bool valid = false;
+                    if (current == 'O') 
+                    {
+                        cells[x,y] = (int)PlayerSide.Player_O;
+                        valid = true;
+                    }else if (current == 'X')
+                    {
+                        cells[x,y] = (int)PlayerSide.Player_X;
+                        valid = true;
+                    }else if (current == '?')
+                    {
+                        cells[x,y] = 0;
+                        valid = true;
+                    }
+                    if (valid) x++;
                 }
 
                 if (x >= cells.GetLength(0))
@@ -48,7 +72,123 @@ namespace TicTacToe.Core
             }
         }
 
+        //       Winning API    
+
+
+        // Vertical wins
+        private int CountVertcialPoints(int x , PlayerSide side)
+        {
+            int points = 0;
+
+            for(int y = 0; y < cells.GetLength(1); y++)
+            {
+                 if (cells[x,y] == (int)side)
+                 {
+                     points++;
+                 }else if (cells[x,y] != 0) break;
+            }
+            return points;
+        }
+
+        public bool IsWinnerVertical(PlayerSide side)
+        {
+            bool result = CountVertcialPoints(0 , side) == 3;
+            for(int x = 1 ; x < cells.GetLength(0); x++)
+                result = result || (CountVertcialPoints(x , side) == 3);
+            return result; 
+        }
+
+        // Horizontal wins
+        private int CountHorizontalPoints(int y, PlayerSide side)
+        {
+            int points = 0;
+
+            for (int x = 0; x < cells.GetLength(0); x++)
+            {
+                if (cells[x,y] == (int)side)
+                {
+                    points++;
+                }else if (cells[x,y] != 0) break;
+            }
+
+            return points;
+        }
+
+        public bool IsWinnerHorizontal(PlayerSide side)
+        {
+            bool result = CountHorizontalPoints(0 , side) == 3;
+            for (int y = 1; y < cells.GetLength(1); y++)
+                result = result || (CountHorizontalPoints(y , side) == 3);
+
+            return result;
+        }
+
+        // Diagonal wins
+        private int CountDiagonalPoints(bool left, PlayerSide side)
+        {
+            int count = 0;
+            int x = left ? 0 : cells.GetLength(0) -1;
+            int y = 0;
+
+            for (int i = 0; i < cells.GetLength(0); i++)
+            {
+                if (cells[x,y] == (int)side)
+                {
+                    count++;
+                }else if (cells[x,y] != 0) break;
+
+                x += left ? 1 : -1;
+                y ++;
+            }
+
+            return count;
+        }
+
+        public bool IsWinnerDiagonal(PlayerSide side)
+        {
+           return CountDiagonalPoints(true , side) == 3 || CountDiagonalPoints(false , side) == 3;
+        }
+
         // ==================== [ PUBLIC API ] ==================== 
+
+        public bool IsTerminal(out PlayerSide _winner)
+        {
+            if (IsPlayerWinner(PlayerSide.Player_X))
+            {
+                _winner = PlayerSide.Player_X;
+                return true;
+            }else if (IsPlayerWinner(PlayerSide.Player_O))
+            {
+                _winner = PlayerSide.Player_O;
+                return true;
+            }
+            
+            _winner = PlayerSide.None;
+            return EmptySpacesCount() == 0;
+        }
+
+        public bool IsPlayerWinner(PlayerSide side)
+        {
+             return IsWinnerDiagonal(side) || IsWinnerHorizontal(side) || IsWinnerVertical(side);
+        }
+
+        public List<GameMove> GetPossibleMoves(PlayerSide playingSide)
+        {
+            List<GameMove> result = new List<GameMove>();
+
+            for (int x = 0; x < cells.GetLength(0); x++)
+            {
+                for (int y = 0; y < cells.GetLength(1); y++)
+                {
+                    if (cells[x, y].Equals(0))
+                    {
+                        result.Add(new GameMove(playingSide, x, y));
+                    }
+                }
+            }
+
+            return result;
+        }
 
         public int EmptySpacesCount()
         {
@@ -58,85 +198,6 @@ namespace TicTacToe.Core
                     if (cells[x, y] == 0) empty_count++;
 
             return empty_count;
-        }
-
-
-        public bool IsPlayerWinner(PlayerSide side)
-        {
-            int playerval = (int)side;
-
-            for (int y = 0; y < cells.GetLength(1); y++)
-            {
-                for (int x = 0; x < cells.GetLength(0); x++)
-                {
-                    if (IsWinnerDiagonal(playerval, x, y) || IsWinnerHorizontal(playerval, x, y) || IsWinnerVertical(playerval, x, y))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        public bool IsWinnerDiagonal(int player , int _x , int _y)
-        {
-            if (!IsOnCorner(_x, _y)) return false;
-
-            int x = _x;
-            int y = _y;
-            bool result = cells[x, y] == player;
-            for (int i = 0; i < cells.GetLength(0); i++)
-            {
-                x = (_x == cells.GetLength(0) - 1) ? (x - 1) : (x + 1);
-                y = (_y == cells.GetLength(1) - 1) ? (y - 1) : (y + 1);
-
-                if (IsValidCoord(x, y))
-                    result &= cells[x, y] == player;
-                else
-                    break;
-            }
-            return result;
-        }
-
-        public bool IsWinnerVertical(int player , int _x , int _y)
-        {
-            int y = _y;
-
-            int count = 0;
-            for (int i = 0; i < cells.GetLength(0); i++)
-            {
-                if (IsValidCoord(_x, y))
-                {
-                    if (cells[_x, y] == player)
-                        count++;
-                    else
-                        return false;
-                }
-                y = (_y == (cells.GetLength(1) - 1)) ? (y - 1) : (y + 1);
-            }
-
-            return count == cells.GetLength(1);
-        }
-
-        public bool IsWinnerHorizontal (int player , int _x , int _y)
-        {
-            
-            int x = _x;
-
-            int count = 0;
-
-            for (int i = 0; i < cells.GetLength(0); i++)
-            {
-                if (IsValidCoord(x, _y))
-                {
-                    if (cells[x, _y] == player)
-                        count++;
-                    else 
-                        return false;
-                }
-                x = (_x == (cells.GetLength(0) - 1)) ? (x - 1) : (x + 1);
-            }
-
-            return count == cells.GetLength(0);
         }
 
         public bool IsOnCorner(int x , int y )
@@ -149,11 +210,26 @@ namespace TicTacToe.Core
             return (x >= 0 && x < cells.GetLength(0)) && (y >= 0 && y < cells.GetLength(1));
         }
 
-        public void PlacePlayerOnSquare(int x , int y , PlayerSide side)
+        public void UnMakeMove(int x , int y)
+        {
+            cells[x, y] = 0;
+        }
+
+        public bool PlacePlayerOnSquare(int x , int y , PlayerSide side)
         {
             if (IsValidCoord(x,y))
+            {
                 cells[x, y] = (int)side;
+                return true;
+            }
+            return false;
         }
+
+        public bool PlacePlayerOnSquare(GameMove move)
+        {
+            return PlacePlayerOnSquare(move.x, move.y , move.side);
+        }
+
         public PlayerSide GetPlayerFromSquare (int x , int y)
         {
             if (!IsValidCoord(x, y)) return PlayerSide.None;
@@ -161,10 +237,9 @@ namespace TicTacToe.Core
             return (PlayerSide)cells[x, y];
         }
 
-        public string Serialize()
+        public string Serialize(bool prettyPrint = true)
         {
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-            builder.Append("GameGrid: \n");
+            string result = string.Empty;
             for (int y = 0; y < cells.GetLength(1); y++)
             {
                 for (int x = 0; x < cells.GetLength(0); x++)
@@ -175,13 +250,13 @@ namespace TicTacToe.Core
                     else if (cells[x, y] == (int)PlayerSide.Player_O)
                         _player = 'O';
 
-                    builder.Append($"-{_player} ");
-                    if (x == cells.GetLength(0) - 1) builder.Append("-");
+                    result += $"-{_player} ";
+                    if (x == cells.GetLength(0) - 1) result += "-";
                 }
-                builder.AppendLine();
+                result += prettyPrint ? "\n" : "_";
             }
-            return builder.ToString();
+            return result;
         }
-
+        
     }
 }

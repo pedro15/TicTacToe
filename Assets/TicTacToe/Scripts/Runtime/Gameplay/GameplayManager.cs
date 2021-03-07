@@ -17,11 +17,12 @@ namespace TicTacToe.Gameplay
         private Sprite Icon_None = default;
         [SerializeField]
         private GameButton[] buttons = default;
-        private Game game = null;
+
+        public Game game { get; private set; }
 
         private void Start()
         {
-            game = new Game(new HumanPlayer(), new HumanPlayer());
+            game = new Game(new HumanPlayer() , new AIPlayer());
             int[,] cells = game.grid.cells;
 
             for (int y = 0; y < cells.GetLength(1); y++)
@@ -47,9 +48,11 @@ namespace TicTacToe.Gameplay
                     break;
                 case PlayerSide.Player_O:
                     buttons[index].Graphic.sprite = Icon_O;
+                    buttons[index].Graphic.color = Color.green;
                     break;
                 case PlayerSide.Player_X:
                     buttons[index].Graphic.sprite = Icon_X;
+                    buttons[index].Graphic.color = Color.red;
                     break;
             }
         }

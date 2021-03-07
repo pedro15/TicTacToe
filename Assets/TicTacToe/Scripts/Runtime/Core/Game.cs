@@ -41,9 +41,13 @@ namespace TicTacToe.Core
         {
             while(true)
             {
-                if (selectedPlayer.Move(out GameMove movement , currentTurn))
+                if (selectedPlayer.Move(out GameMove movement , currentTurn , grid))
                 {
-                    if (grid.cells[movement.x, movement.y] != 0) continue;
+                    if (grid.cells[movement.x, movement.y] != 0)
+                    {
+                        Debug.LogWarning($"Invalid move! : {movement.x},{movement.y} == {grid.cells[movement.x,movement.y]}");
+                        continue;
+                    }
 
                     grid.PlacePlayerOnSquare(movement.x, movement.y, movement.side);
                     if (OnMovementMade != null) OnMovementMade.Invoke(movement);

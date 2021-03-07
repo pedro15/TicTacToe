@@ -16,5 +16,12 @@ namespace TicTacToe.Core
             x = _x;
             y = _y;
         }
+
+        public bool IsValid()
+        {
+            return x > 0 && y > 0 && side != PlayerSide.None;
+        }
+
+        public static GameMove Invalid => new GameMove(PlayerSide.None, -1, -1);
     }
 }

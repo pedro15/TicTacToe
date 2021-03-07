@@ -9,69 +9,40 @@ namespace TicTacToe.Tests
 {
     public class GameBoardTests
     {
-       
-
+        
         [Test]
-        public void WinnerDiagonal()
+        public void TestVerticalWin()
         {
-            string grid_str =  "1-0-0" +
-                               "0-1-0" +
-                               "0-0-1";
+            string gridMap = "X-O-?-" +
+                             "X-O-?-" + 
+                             "X-?-X-";
 
-            GameGrid grid = new GameGrid(grid_str);
-
+            GameGrid grid = new GameGrid(gridMap);
             Debug.Log(grid.Serialize());
-
-            Assert.IsTrue(grid.IsWinnerDiagonal((int)PlayerSide.Player_X, 0, 0) && grid.IsWinnerDiagonal((int)PlayerSide.Player_X , 2,2));
+            Assert.IsTrue(grid.IsWinnerVertical(PlayerSide.Player_X));
         }
 
         [Test]
-        public void WinnerHorizontal()
+        public void TestHorizontalWin()
         {
-            string grid_str = "0-0-0" +
-                              "1-1-1" +
-                              "0-0-0";
-
-            GameGrid grid = new GameGrid(grid_str);
-
+            string gridMap = @"X-O-?-
+                               O-O-O-
+                               X-?-X-";
+            GameGrid grid = new GameGrid(gridMap);
             Debug.Log(grid.Serialize());
-
-            int player = (int)PlayerSide.Player_X;
-
-            Assert.IsTrue(grid.IsWinnerHorizontal(player, 0, 1) && grid.IsWinnerHorizontal(player , 2 , 1));
+            Assert.IsTrue(grid.IsWinnerHorizontal(PlayerSide.Player_O));
         }
 
         [Test]
-        public void WinnerHorizontal_Loss()
+        public void TestDiagonalWin()
         {
-            string grid_str = "0-0-0" +
-                              "0-1-1" +
-                              "0-0-0";
-
-            GameGrid grid = new GameGrid(grid_str);
-
+            string gridmap = @"X-?-O-
+                               O-X-?
+                               O-?-X";
+            GameGrid grid = new GameGrid(gridmap);
             Debug.Log(grid.Serialize());
-
-            int player = (int)PlayerSide.Player_X;
-
-            Assert.IsTrue(!grid.IsWinnerHorizontal(player, 2, 1));
+            Assert.IsTrue(grid.IsWinnerDiagonal(PlayerSide.Player_X));
         }
-
-        [Test]
-        public void WinnerVertical()
-        {
-            string grid_str = "1-1-0" +
-                              "1-2-0" +
-                              "1-1-0";
-
-            GameGrid grid = new GameGrid(grid_str);
-
-            Debug.Log(grid.Serialize());
-
-            int player = (int)PlayerSide.Player_X;
-
-            Assert.IsTrue(grid.IsWinnerVertical(player, 0, 0) && grid.IsWinnerVertical(player , 0,2));
-        }
-
+        
     }
 }
