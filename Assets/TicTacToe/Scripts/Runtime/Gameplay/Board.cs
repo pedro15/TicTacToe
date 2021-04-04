@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
+using System.Linq;
 
 namespace TicTactoe.Gameplay
 {
@@ -13,7 +14,7 @@ namespace TicTactoe.Gameplay
 
     public sealed class Board
     {
-        private const int board_size = 3;
+        public const int board_size = 3;
         private int[,] squares;
 
         public int FreePositionsCount { get; private set; }
@@ -23,40 +24,58 @@ namespace TicTactoe.Gameplay
             squares = new int[board_size , board_size];
             GetFreePositions();
         }
-
+        
         public Board(string _notation)
         {
+            FreePositionsCount = board_size * board_size;
             squares = new int[board_size , board_size];
             ParseFromNotation(_notation);
-            GetFreePositions();
         }
 
         // ================== [ PUBLIC API ] ==================
 
-        public bool MakeMove(Vector2Intx _position , PlayerSide _player)
+        public static PlayerSide GetAdversary(PlayerSide _player)
         {
-            if (!IsPositionValid(_position)) 
-            {
-                Debug.LogError("Invalid move position!");
-                return false;
-            }
-            squares[_position.x , _position.y] = (int)_player;
-            return true;
+            if(_player == PlayerSide.Player_O)
+                return PlayerSide.Player_X;
+            else if (_player == PlayerSide.Player_X)
+                return PlayerSide.Player_O;
+
+            return PlayerSide.None;
         }
 
+        public int[,] GetBoardData() => squares;
+        
+        public bool MakeMove(Vector2Intx _position , PlayerSide _player)
+        {
+            if (!IsPositionValid(_position) || squares[_position.x,_position.y] != 0) return false;
+            squares[_position.x , _position.y] = (int)_player;
+            FreePositionsCount += (_player == PlayerSide.None) ? 1 : -1;
+            return true;
+        }
+        
         public bool UnMakeMove(Vector2Intx _position)
         {
-            return MakeMove(_position , PlayerSide.None);
+            if (!IsPositionValid(_position)) return false;
+            squares[_position.x , _position.y] = 0;
+            return true;
         }
         
         public bool IsPositionValid(Vector2Intx _position)
         {
             return _position.x >= 0 && _position.x < board_size && _position.y >= 0 && _position.y < board_size;
         }
+
+        public void Reset()
+        {
+            FreePositionsCount = board_size * board_size;
+            for(int x = 0; x < board_size; x++)
+                for (int y = 0; y < board_size; y++)
+                    squares[x,y] = 0;
+        }
         
         public List<Vector2Intx> GetFreePositions()
         {
-            FreePositionsCount = 0;
             List<Vector2Intx> result = new List<Vector2Intx>();
             for (int y = 0; y < board_size; y++)
             {
@@ -64,7 +83,6 @@ namespace TicTactoe.Gameplay
                 {
                     if (squares[x,y] == 0)
                     {
-                        FreePositionsCount++;
                         result.Add(new Vector2Intx(x,y));
                     }
                 }
@@ -72,17 +90,18 @@ namespace TicTactoe.Gameplay
             return result;
         }
 
-        public bool IsTerminal(out PlayerSide _winner )
+        public bool IsTerminal(out PlayerSide _winner , PlayerSide currentPlayer = PlayerSide.Player_O)
         {
-            if (IsWinner(PlayerSide.Player_O))
+            if (IsWinner(currentPlayer))
             {
-                _winner = PlayerSide.Player_O;
+                _winner = currentPlayer;
                 return true;
-            }else if (IsWinner(PlayerSide.Player_X))
+            }else if (IsWinner(GetAdversary(currentPlayer)))
             {
-                _winner = PlayerSide.Player_X;
+                _winner = GetAdversary(currentPlayer);
                 return true;
             }
+
             _winner = PlayerSide.None;
             return FreePositionsCount == 0;
         }
@@ -96,39 +115,44 @@ namespace TicTactoe.Gameplay
 
         private bool CheckWin_Diagonal(bool _left, PlayerSide _side)
         {
-            int start_index = _left ? 0 : board_size - 1;
-            int end_index = _left ? board_size - 1 : 0;
-            int increment = _left ? 1 : -1;
+            int value = (int)_side;
             int y = 0;
-            bool result = true;
-            for (int x = start_index; x < end_index; x+= increment)
+
+            int increment = _left ? 1 : -1;
+            int start = _left ? 0 : board_size - 1;
+            int end = _left ? board_size -1 : 0;
+            int score = 0;
+
+            for (int x = start; _left ? (x <= end) : (x >= end) ; x+= increment)
             {
-                Vector2Intx current_position = new Vector2Intx(x, y);
-                if (!IsPositionValid(current_position)) break;
-                result = result && squares[x, y] == (int)_side;
+                if (!IsPositionValid(new Vector2Intx(x,y))) break;
+                if(squares[x,y] == value) score++;
                 y++;
             }
-            return result;
+            return score == 3;
         }
 
         private bool CheckWin_Vertical(int x, PlayerSide _side)
         {
-            bool result = true;
+            int score = 0;
             for (int y = 0; y < board_size; y++)
             {
-                result = result && squares[x,y] == (int)_side;
+                if (squares[x,y] == (int)_side)
+                    score++;
+                    
             }
-            return result;
+            return score == 3;
         }
 
         private bool CheckWin_Horizontal(int y , PlayerSide _side)
         {
-            bool result = true;
+            int score = 0;
             for (int x = 0; x < board_size; x++)
             {
-                result = result && squares[x,y] == (int)_side;
+                if (squares[x,y] == (int)_side)
+                    score++;
             }
-            return result;
+            return score == 3;
         }
 
         private bool WinnerDiagonal(PlayerSide _side)
@@ -144,7 +168,7 @@ namespace TicTactoe.Gameplay
             }
             return false;
         }
-
+        
         private bool WinnerHorizontal(PlayerSide _side)
         {
             for (int y = 0; y < board_size; y++)
@@ -155,9 +179,10 @@ namespace TicTactoe.Gameplay
         }
 
         // ================== [ INTERNAL METHODS ] ==================
-
+        
         private void ParseFromNotation(string _notation)
         {
+            if (string.IsNullOrEmpty(_notation)) return;
             int x = 0, y = 0;
             for (int i = 0; i < _notation.Length; i++)
             {
@@ -182,6 +207,59 @@ namespace TicTactoe.Gameplay
                     break;
                 }
             }
+        }
+
+        public string Serialize(bool prettyPrint = true)
+        {
+            string result = "";
+            for(int y = 0; y < board_size; y++)
+            {
+                for (int x = 0; x < board_size; x++)
+                {
+                    PlayerSide current_side = (PlayerSide)squares[x,y];
+                    char sideval = '?';
+                    if (current_side == PlayerSide.Player_O)
+                        sideval = 'O';
+                    else if (current_side == PlayerSide.Player_X)
+                        sideval = 'X';
+
+                    result += sideval + "-";
+                }
+                if(prettyPrint) result += "\n";
+            }
+            return result;
+        }
+
+        private bool SquaresEquals(int[,] other)
+        {
+            if (other.Length != squares.Length) return false;
+            bool result = true;
+            for(int y = 0; y < board_size; y++)
+            {
+                for (int x = 0; x < board_size; x++)
+                {
+                    result &= squares[x,y] == other[x,y];
+                }
+            }
+            return result;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            Board other = (Board)obj;
+            return other.FreePositionsCount.Equals(FreePositionsCount) && SquaresEquals(other.squares);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 8;
+            hash += FreePositionsCount.GetHashCode();
+            hash += squares.GetHashCode();
+            return hash;
         }
 
     }
